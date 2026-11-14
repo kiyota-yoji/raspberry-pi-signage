@@ -1,0 +1,19 @@
+[Unit]
+Description=Signage video player (mpv)
+After=systemd-user-sessions.service local-fs.target
+
+[Service]
+Type=simple
+User=signage
+Group=signage
+SupplementaryGroups=video render audio
+Environment=PYTHONPATH=/opt/signage
+Environment=PYTHONUNBUFFERED=1
+# fb_blank（HDMI 信号停止）用に、video グループへ書き込み権限を与える（+ は root で実行）
+ExecStartPre=+/bin/sh -c 'f=/sys/class/graphics/fb0/blank; if [ -e "$f" ]; then chgrp video "$f" && chmod g+w "$f"; fi; true'
+ExecStart=/usr/bin/python3 -m signage player
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

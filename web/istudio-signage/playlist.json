@@ -1,0 +1,11 @@
+{
+  "mode": "sequential",
+  "items": [
+    {
+      "title": "iStudio サイネージ サンプル (2026-11-12 v4)",
+      "url": "videos/istudio-sample-20261112-v4.mp4",
+      "sha256": "36f4ca1477014af3521d3f38f946c9cb33a212e4af79eca604d3fe06cea3e5c6",
+      "repeat": 1
+    }
+  ]
+}

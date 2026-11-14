@@ -1,0 +1,10 @@
+[Unit]
+Description=Fetch signage playlist periodically
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=10min
+RandomizedDelaySec=60
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,16 @@
+[Unit]
+Description=Signage playlist and video download
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=signage
+Group=signage
+Environment=PYTHONPATH=/opt/signage
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 -m signage sync
+# 大きな動画のダウンロードに備えて長めに
+TimeoutStartSec=2h
+Nice=10
+IOSchedulingClass=idle

@@ -1,0 +1,62 @@
+# Raspberry Pi サイネージ設定
+# インストール先: /etc/signage/signage.toml
+
+[playlist]
+# 再生リスト JSON の URL（JSON 内の動画 URL は相対パスも可。この URL を基準に解決される）
+url = "https://math.kiyota-yoji.net/istudio-signage/playlist.json"
+# 取得の間隔は systemd タイマー (signage-sync.timer, 既定 10 分) で決まる
+# 通信のタイムアウト（秒）
+timeout_sec = 30
+# Basic 認証が必要な場合のみ設定（不要なら空のまま）
+username = ""
+password = ""
+
+[storage]
+# 動画とマニフェストの保存先
+dir = "/var/lib/signage"
+# JSON から外れた動画を削除するまでの猶予（分）。再生中のファイルを消さないため
+delete_grace_min = 30
+
+[player]
+# 音声を出すか
+mute = true
+# 追加の mpv オプション（必要な場合のみ）
+mpv_extra_args = []
+# 再生対象が 1 本もない時に表示する画像（任意。空なら黒画面）
+fallback_image = ""
+
+[display]
+# 消灯・点灯の方法（複数指定可。上から順に実行）
+#   "cec"      : HDMI-CEC でテレビの電源を ON/スタンバイ（業務用ディスプレイ・テレビ向け）
+#   "fb_blank" : HDMI 信号を止めてモニタを省電力モードにする（PC モニタ向け）
+#   "vcgencmd" : 旧来の vcgencmd display_power（Legacy/FKMS 環境のみ）
+methods = ["cec", "fb_blank"]
+cec_device = "/dev/cec0"
+# 消灯中、誰かがテレビを手動で点けても再度消す間隔（分）。0 で無効
+reassert_off_min = 30
+
+[schedule]
+# 再生する時間帯（曜日ごと、"HH:MM-HH:MM" を複数指定可。日付をまたぐ "22:00-02:00" も可）
+# 空リストの曜日は終日 OFF
+mon = ["08:00-20:00"]
+tue = ["08:00-20:00"]
+wed = ["08:00-20:00"]
+thu = ["08:00-20:00"]
+fri = ["08:00-20:00"]
+sat = ["09:00-17:00"]
+sun = []
+# 終日 OFF にする日（休講日・年末年始など）
+off_dates = ["2026-12-29", "2026-12-30", "2026-12-31", "2027-01-01", "2027-01-02", "2027-01-03"]
+# 再生リスト JSON に "schedule" があればそちらを優先する
+allow_remote = true
+
+[network]
+# netwatch が監視・再接続する NetworkManager の接続名（setup-wifi.sh で作った名前）
+connection = "campus-wifi"
+# 疎通確認先（HTTP で 2xx/3xx が返ればオンラインとみなす）。空なら playlist.url を使う
+check_url = ""
+# この回数連続で失敗したら接続を張り直す / NetworkManager を再起動する
+reconnect_after = 2
+restart_nm_after = 4
+# この回数連続で失敗したら再起動（0 で無効）。netwatch は 5 分ごとに動く
+reboot_after = 0

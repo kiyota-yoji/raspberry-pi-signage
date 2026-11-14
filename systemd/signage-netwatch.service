@@ -1,0 +1,10 @@
+[Unit]
+Description=Signage Wi-Fi watchdog
+After=NetworkManager.service
+
+[Service]
+Type=oneshot
+Environment=PYTHONPATH=/opt/signage
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 -m signage netwatch
+SuccessExitStatus=1
