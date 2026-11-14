@@ -33,10 +33,12 @@ Raspberry Pi を HDMI ディスプレイにつなぎ、Web サイトに置いた
 | `signage/schedule.py` | 点灯時間帯・掲出期間の判定 |
 | `signage/display.py` | ディスプレイの ON/OFF（CEC / fb_blank / vcgencmd） |
 | `signage/netwatch.py` | Wi-Fi 疎通監視と段階的な復旧 |
+| `signage/bootimport.py` | 起動時に SD カードの boot 領域から設定・Wi-Fi を取り込む |
 | `scripts/setup-wifi.sh` | Wi-Fi 接続の登録 |
 | `scripts/install.sh` | インストール |
 | `config/signage.toml.example` | 設定ファイルの雛形 |
 | `examples/playlist.json` | 再生リスト JSON の例 |
+| `examples/wifi.txt` | SD カードから Wi-Fi を設定するときの雛形 |
 
 外部ライブラリは使っていません（Python 標準ライブラリ + mpv + cec-ctl）。
 
@@ -201,8 +203,50 @@ signagectl check             # 設定と再生リストの検証
 ログ:
 
 ```bash
-journalctl -u signage-player -u signage-sync -u signage-netwatch -f
+journalctl -u signage-player -u signage-sync -u signage-netwatch -u signage-bootimport -f
 ```
+
+### SSH で設定を変更する
+
+```bash
+signagectl override off                  # 表示を止める（再起動しても消灯のまま）
+sudo nano /etc/signage/signage.toml      # 編集
+signagectl check                         # 確認
+sudo systemctl restart signage-player    # [schedule] [display] [player] の変更を反映
+signagectl override auto                 # スケジュールどおりに戻す
+```
+
+`[playlist]` `[storage]` `[network]` は次の同期・監視（10 分以内）で自動的に反映されます。
+
+## SD カードから設定する（ネットワーク不要）
+
+Raspberry Pi の電源を切って SD カードを Mac / Windows に挿すと、`bootfs` という名前のドライブが見えます（Pi の中では `/boot/firmware`）。ここに次のファイルを置いて SD カードを戻し、電源を入れると、**再生が始まる前に**取り込まれます。
+
+| 置くファイル | 起動時の動作 |
+|---|---|
+| `signage-maintenance`（または `signage-maintenance.txt`） | **メンテナンスモード**。再生せず、画面にログインプロンプトを出します。キーボードをつないでログインし、作業できます。ファイルがある限り、何度起動しても再生しません |
+| `signage.toml` | 設定ファイル。検証して `/etc/signage/signage.toml` に反映し、`signage.toml.applied` に改名します。書式が不正なら反映せず `signage.toml.error` に改名します（前の設定のまま動きます） |
+| `wifi.txt` | Wi-Fi の接続設定を登録します。パスワードを含むため、**登録後に自動で削除**されます。雛形: [examples/wifi.txt](examples/wifi.txt) |
+
+結果は同じ場所の **`signage-result.txt`** に書き出されるので、SD カードを Mac に挿せば確認できます（Wi-Fi が接続できたか、IP アドレス、MAC アドレスなど）。
+
+**設定を変えるときの手順の例**
+
+1. 前回反映した `signage.toml.applied` をコピーして `signage.toml` という名前にし、編集する（初回は [config/signage.toml.example](config/signage.toml.example) から作る）
+2. SD カードを Pi に戻して電源を入れる
+3. 必要なら、もう一度 SD カードを抜いて `signage-result.txt` を確認する
+
+**メンテナンスモードを終えるには**、SD カードの `signage-maintenance` を消して起動し直すか、Pi にログインして次を実行します（再起動は不要。5 秒以内に再生が始まります）。
+
+```bash
+sudo rm /boot/firmware/signage-maintenance*
+```
+
+**注意**
+
+- `--boot-tweaks` でインストールした場合、ログイン画面にカーソルが表示されません。入力自体はできます
+- boot 領域のファイルは Pi のどのユーザーからも読めます。設定ファイルに Basic 認証のパスワードを書いた場合、`signage.toml.applied` を削除しておくと安全です
+- テキストエディタは UTF-8 で保存してください（Windows のメモ帳の BOM 付き UTF-8・改行 CRLF も可）
 
 ## Wi-Fi の自動復旧
 

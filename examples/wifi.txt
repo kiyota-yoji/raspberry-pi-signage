@@ -1,0 +1,20 @@
+# SD カードの boot 領域に「wifi.txt」として置き、Raspberry Pi を起動すると Wi-Fi を登録します。
+# 登録後、このファイルはパスワードを含むため自動的に削除されます。結果は signage-result.txt に書かれます。
+# 「#」で始まる行はコメントです。使わない項目は消すかコメントのままにしてください。
+
+ssid = olive
+
+# --- ID・パスワード方式（WPA2-Enterprise / eduroam）の場合 ---
+eap = peap
+identity = signage01@example.ac.jp
+password = ここにパスワード
+# phase2 = mschapv2
+# anonymous_identity = anonymous@example.ac.jp
+# ca_cert = /etc/ssl/certs/ISRG_Root_X1.pem
+# domain_suffix_match = radius.example.ac.jp
+
+# --- パスフレーズ方式（WPA2-Personal）の場合は eap と identity を消し、password だけ書く ---
+
+# その他
+# hidden = yes        # SSID を隠しているネットワーク
+# country = JP

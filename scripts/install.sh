@@ -38,6 +38,8 @@ install -d /opt/signage
 rm -rf /opt/signage/signage
 cp -r "$SRC/signage" /opt/signage/
 find /opt/signage -name '__pycache__' -prune -exec rm -rf {} +
+install -d /opt/signage/scripts
+install -m 755 "$SRC/scripts/setup-wifi.sh" /opt/signage/scripts/setup-wifi.sh
 
 install -d -m 755 /etc/signage
 if [ ! -e /etc/signage/signage.toml ]; then
@@ -60,7 +62,7 @@ chmod 755 /usr/local/bin/signagectl
 echo "==> systemd に登録"
 install -m 644 "$SRC"/systemd/*.service "$SRC"/systemd/*.timer /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable signage-player.service signage-sync.timer signage-netwatch.timer
+systemctl enable signage-bootimport.service signage-player.service signage-sync.timer signage-netwatch.timer
 
 if [ "$(systemctl get-default)" = "graphical.target" ]; then
   echo "    デスクトップ環境が起動する設定のため、コンソール起動に切り替えます（mpv が画面を直接使うため）"
@@ -96,6 +98,7 @@ fi
 echo
 echo "インストールしました。次の手順:"
 echo "  1. Wi-Fi 設定:     sudo $SRC/scripts/setup-wifi.sh --ssid <SSID> ..."
+echo "                    （または SD カードの boot 領域に wifi.txt を置いて再起動）"
 echo "  2. 設定ファイル:   sudo nano /etc/signage/signage.toml"
 echo "  3. 設定の確認:     signagectl check"
 echo "  4. 開始:           sudo systemctl start signage-sync.service signage-player.service signage-sync.timer signage-netwatch.timer"

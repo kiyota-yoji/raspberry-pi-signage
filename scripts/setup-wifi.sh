@@ -10,6 +10,7 @@
 #        --ca-cert /etc/ssl/certs/ISRG_Root_X1.pem --domain-suffix-match radius.example.ac.jp
 #
 # パスワード／パスフレーズは --password で渡さなければ入力を求める（シェル履歴に残さないため推奨）
+# 標準入力から渡すこともできる: printf '%s\n' "$PW" | sudo ./setup-wifi.sh --ssid ...
 set -euo pipefail
 
 NAME="campus-wifi"
@@ -26,7 +27,7 @@ COUNTRY="JP"
 HIDDEN="no"
 PRIORITY=10
 
-usage() { sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
+usage() { sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -52,8 +53,13 @@ done
 command -v nmcli >/dev/null || { echo "NetworkManager (nmcli) が必要です（Raspberry Pi OS Bookworm 以降は標準）" >&2; exit 1; }
 
 if [ -z "$PASSWORD" ]; then
-  read -r -s -p "パスワード: " PASSWORD; echo
+  if [ -t 0 ]; then
+    read -r -s -p "パスワード: " PASSWORD; echo
+  else
+    IFS= read -r PASSWORD || true
+  fi
 fi
+[ -n "$PASSWORD" ] || { echo "パスワードが空です" >&2; exit 1; }
 
 # Wi-Fi の国コード（未設定だと 5GHz 帯などが使えず接続できないことがある）
 if command -v raspi-config >/dev/null; then

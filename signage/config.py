@@ -9,6 +9,26 @@ from pathlib import Path
 
 DEFAULT_CONFIG_PATH = Path(os.environ.get("SIGNAGE_CONFIG", "/etc/signage/signage.toml"))
 
+
+def boot_dir() -> Path:
+    """SD カードの boot 領域（FAT。Mac / Windows からも読み書きできる）。"""
+    env = os.environ.get("SIGNAGE_BOOT_DIR")
+    if env:
+        return Path(env)
+    return Path("/boot/firmware") if Path("/boot/firmware").is_dir() else Path("/boot")
+
+
+# boot 領域に置くと再生を止めるファイル（テキストエディタで .txt が付いても可）
+MAINTENANCE_NAMES = ("signage-maintenance", "signage-maintenance.txt")
+
+
+def maintenance_file() -> Path | None:
+    for name in MAINTENANCE_NAMES:
+        p = boot_dir() / name
+        if p.exists():
+            return p
+    return None
+
 DEFAULTS: dict = {
     "playlist": {"url": "", "timeout_sec": 30, "username": "", "password": ""},
     "storage": {"dir": "/var/lib/signage", "delete_grace_min": 30},

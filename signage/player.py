@@ -22,6 +22,7 @@ from datetime import datetime
 from pathlib import Path
 
 from . import schedule as sched
+from . import config
 from .config import Paths
 from .display import Display
 from .sync import read_json, write_json_atomic
@@ -272,6 +273,7 @@ class Player:
         write_json_atomic(self.paths.status, {
             "updated_at": datetime.now().isoformat(timespec="seconds"),
             "state": self.state,
+            "maintenance_file": str(mf) if (mf := config.maintenance_file()) else None,
             "override": self.override(),
             "playing": (self.current or {}).get("title") or (self.current or {}).get("path"),
             "mpv_running": self.mpv.alive(),
@@ -378,7 +380,15 @@ class Player:
                     next_check = now + 5
                     changed = self.check_manifest()
                     want = self.desired_on()
-                    if want and self.state != "on":
+                    mf = config.maintenance_file()
+                    if mf:
+                        if self.state != "maintenance":
+                            # 再生を止め、画面にログインプロンプトを出す（キーボードで作業できる）
+                            log.info("%s があるためメンテナンスモードにします（再生しません）", mf)
+                            self.mpv.stop()
+                            self.display.on()
+                            self.state = "maintenance"
+                    elif want and self.state != "on":
                         log.info("再生時間帯に入りました")
                         self.turn_on()
                     elif not want and self.state != "off":

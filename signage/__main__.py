@@ -3,6 +3,7 @@
   sync              再生リスト JSON を取得して動画をダウンロード
   player            再生デーモン（systemd から起動）
   netwatch          Wi-Fi 疎通監視（systemd タイマーから起動）
+  bootimport        SD カードの boot 領域から設定・Wi-Fi を取り込む（起動時に root で実行）
   status            現在の状態を表示
   override on|off|auto
                     スケジュールを無視して強制点灯 / 強制消灯 / 自動に戻す
@@ -27,7 +28,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("-c", "--config", help="設定ファイル（既定: /etc/signage/signage.toml）")
     ap.add_argument("-v", "--verbose", action="store_true")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    for name in ("sync", "player", "netwatch", "status", "check"):
+    for name in ("sync", "player", "netwatch", "bootimport", "status", "check"):
         sub.add_parser(name)
     ov = sub.add_parser("override")
     ov.add_argument("mode", choices=["on", "off", "auto"])
@@ -37,6 +38,11 @@ def main(argv: list[str] | None = None) -> int:
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(levelname)s %(name)s: %(message)s",
     )
+    if args.cmd == "bootimport":
+        # 設定ファイルを書き換える前に読み込まないよう、ここで分岐する
+        from . import bootimport
+        return bootimport.run(args.config)
+
     cfg = config.load(args.config)
     paths = Paths(cfg)
 
