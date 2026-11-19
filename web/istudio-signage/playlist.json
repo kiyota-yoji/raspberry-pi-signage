@@ -2,9 +2,9 @@
   "mode": "sequential",
   "items": [
     {
-      "title": "iStudio サイネージ サンプル (2026-11-12 v3)",
-      "url": "videos/istudio-sample-20261112-v3.mp4",
-      "sha256": "2a7c63b757d4433d63d48282c52e1ecad3080932d62b3122c1afb73098de3152",
+      "title": "iStudio サイネージ SPI模試版 (2026-11-19)",
+      "url": "videos/istudio-spi-mock-20261119.mp4",
+      "sha256": "bdeb68078fa9635ccd84d2011279cfd8e617325295cec34b82a16cb2a74486ac",
       "repeat": 1
     }
   ]
